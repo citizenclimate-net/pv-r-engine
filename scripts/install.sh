@@ -30,6 +30,12 @@ install -m 600 /tmp/pv-r-api-key     /etc/cc-pv-r/api-key
 #    existing Hetzner snapshot schedule.
 install -d /var/lib/cc-pv-r/cache /var/lib/cc-pv-r/runs
 
+# 4b. The service runs as the cc-pv-r system user, so it must own (and be able
+#     to read) its config + data. Create the user if missing, then chown.
+id -u cc-pv-r >/dev/null 2>&1 || \
+  useradd --system --no-create-home --shell /usr/sbin/nologin cc-pv-r
+chown -R cc-pv-r:cc-pv-r /etc/cc-pv-r /var/lib/cc-pv-r
+
 # 5. systemd service + nginx vhost.
 install -m 644 systemd/pv-r-engine.service /etc/systemd/system/pv-r-engine.service
 install -m 644 nginx/cc-pv-r.conf /etc/nginx/sites-available/cc-pv-r.conf
