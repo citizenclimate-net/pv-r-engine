@@ -14,7 +14,7 @@ apt-get install -y \
 # 2. Code checkout + R package restore from the pinned renv.lock.
 install -d /srv/cc-pv-r
 if [ ! -d /srv/cc-pv-r/.git ]; then
-  git clone https://github.com/citizenclimate/pv-r-engine /srv/cc-pv-r
+  git clone https://github.com/citizenclimate-net/pv-r-engine /srv/cc-pv-r
 fi
 cd /srv/cc-pv-r
 Rscript -e "install.packages('renv', repos='https://cloud.r-project.org'); renv::restore(prompt = FALSE)"
