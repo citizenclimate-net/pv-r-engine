@@ -17,7 +17,7 @@ if [ ! -d /srv/cc-pv-r/.git ]; then
   git clone https://github.com/citizenclimate-net/pv-r-engine /srv/cc-pv-r
 fi
 cd /srv/cc-pv-r
-Rscript -e "install.packages('renv', repos='https://cloud.r-project.org'); renv::restore(prompt = FALSE)"
+Rscript scripts/restore.R
 
 # 3. Secrets (place these on the box before running):
 #    /tmp/firebase-sa.json  — Firebase Admin service-account JSON

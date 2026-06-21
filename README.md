@@ -83,5 +83,9 @@ Rscript R/pillar1.R inputs/species_count_matrix.csv   # CSV: targetGroup,scienti
 - The R was authored against the methodology and the named functions but must be
   run on the box against a real test dataset before the DAP **sample report**
   (DAP §3) is submitted to Plan Vivo.
-- `renv.lock` pins the versions; regenerate with `renv::snapshot()` after the
-  first `install.packages()` to capture exact hashes.
+- `renv.lock` currently pins only the **Phase-1** packages (`iNEXT`, `vegan`,
+  `plumber`, `jsonlite`, `httr`). The heavier spatial stack (`terra`, `geodiv`,
+  `landscapemetrics`) is added back in Phase 3 when Pillars 4–5 land — keeping it
+  out lets the engine install on a small 1-core box without long source builds.
+- `scripts/restore.R` installs from Posit P3M Linux binaries where available;
+  regenerate the lock with `renv::snapshot()` to capture exact hashes.

@@ -18,18 +18,6 @@
       "Source": "Repository",
       "Repository": "CRAN"
     },
-    "geodiv": {
-      "Package": "geodiv",
-      "Version": "1.1.0",
-      "Source": "Repository",
-      "Repository": "CRAN"
-    },
-    "landscapemetrics": {
-      "Package": "landscapemetrics",
-      "Version": "2.1.4",
-      "Source": "Repository",
-      "Repository": "CRAN"
-    },
     "plumber": {
       "Package": "plumber",
       "Version": "1.2.2",
@@ -45,12 +33,6 @@
     "httr": {
       "Package": "httr",
       "Version": "1.4.7",
-      "Source": "Repository",
-      "Repository": "CRAN"
-    },
-    "terra": {
-      "Package": "terra",
-      "Version": "1.7-78",
       "Source": "Repository",
       "Repository": "CRAN"
     }
