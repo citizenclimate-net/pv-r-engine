@@ -1,0 +1,20 @@
+[Unit]
+Description=PV Nature Pillar Metrics R engine (plumber)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/srv/cc-pv-r
+Environment=PV_HOST_FINGERPRINT=hetzner-cpx21-fra1-a
+ExecStart=/usr/bin/Rscript -e "plumber::pr_run(plumber::pr('/srv/cc-pv-r/api.R'), port = 8001, host = '127.0.0.1')"
+Restart=on-failure
+RestartSec=5
+# BirdNET-Analyzer runs on :8000; this engine listens on :8001 (localhost only,
+# fronted by nginx). Runs as a non-root service account.
+User=cc-pv-r
+Group=cc-pv-r
+NoNewPrivileges=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target
