@@ -40,11 +40,5 @@ estimate_group_diversity <- function(vec) {
   }
   res <- iNEXT::iNEXT(vec, q = 1, datatype = "abundance",
                       se = TRUE, conf = 0.95, nboot = 200)
-  asy <- res$AsyEst
-  row <- asy[asy$Diversity == "Shannon diversity", ][1, ]
-  list(
-    estimator = as.numeric(row$Estimator),
-    lcl = as.numeric(row$LCL),
-    ucl = as.numeric(row$UCL)
-  )
+  asyest_row(res$AsyEst, "shannon")
 }

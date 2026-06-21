@@ -41,6 +41,32 @@ parse_taxonomy_tree <- function(taxonomy_tree) {
   df
 }
 
+#' Extract (estimator, lcl, ucl) for a diversity measure from an iNEXT AsyEst
+#' table. Robust to version differences: in iNEXT 3.0.1 the measure is the ROW
+#' NAME ("Species Richness", "Shannon diversity", ...) and CI columns are
+#' "95% Lower"/"95% Upper"; older versions use a "Diversity" column and LCL/UCL.
+asyest_row <- function(asy, keyword) {
+  na3 <- list(estimator = NA_real_, lcl = NA_real_, ucl = NA_real_)
+  if (is.null(asy) || nrow(asy) == 0) return(na3)
+
+  ridx <- grep(keyword, rownames(asy), ignore.case = TRUE)
+  if (length(ridx) == 0 && "Diversity" %in% colnames(asy)) {
+    ridx <- grep(keyword, asy$Diversity, ignore.case = TRUE)
+  }
+  if (length(ridx) == 0) return(na3)
+  ridx <- ridx[1]
+
+  col_est <- grep("^Estimator$", colnames(asy), ignore.case = TRUE, value = TRUE)
+  col_lcl <- grep("Lower|LCL", colnames(asy), ignore.case = TRUE, value = TRUE)
+  col_ucl <- grep("Upper|UCL", colnames(asy), ignore.case = TRUE, value = TRUE)
+
+  num <- function(x) suppressWarnings(as.numeric(x))
+  est <- if (length(col_est)) num(asy[ridx, col_est[1]]) else NA_real_
+  lcl <- if (length(col_lcl)) num(asy[ridx, col_lcl[1]]) else est
+  ucl <- if (length(col_ucl)) num(asy[ridx, col_ucl[1]]) else est
+  list(estimator = est, lcl = lcl, ucl = ucl)
+}
+
 #' Versions of the canonical packages, pinned in renv.lock and recorded in the
 #' audit trail so a VVB can reproduce the exact computation.
 pv_package_versions <- function() {

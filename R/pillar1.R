@@ -43,13 +43,7 @@ estimate_group_richness <- function(vec) {
   }
   res <- iNEXT::iNEXT(vec, q = 0, datatype = "abundance",
                       se = TRUE, conf = 0.95, nboot = 200)
-  asy <- res$AsyEst
-  row <- asy[asy$Diversity == "Species richness", ][1, ]
-  list(
-    estimator = as.numeric(row$Estimator),
-    lcl = as.numeric(row$LCL),
-    ucl = as.numeric(row$UCL)
-  )
+  asyest_row(res$AsyEst, "richness")
 }
 
 # Standalone reproducibility entry point: `Rscript R/pillar1.R input.csv`
