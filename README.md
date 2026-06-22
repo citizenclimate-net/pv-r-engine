@@ -69,6 +69,27 @@ firebase functions:secrets:set PV_R_API_URL   # https://citizenclimate-pv-r.duck
 firebase functions:secrets:set PV_R_API_KEY   # same value as /etc/cc-pv-r/api-key
 ```
 
+Set `PV_R_API_KEY` to *exactly* the box's key (a mismatch makes the R engine
+return 401). The safest way:
+
+```bash
+ssh root@<box-ip> 'cat /etc/cc-pv-r/api-key' | firebase functions:secrets:set PV_R_API_KEY --data-file -
+```
+
+### Audit-bundle Storage access (one-time IAM)
+
+`runPillarMetrics` uploads the reproducibility `.zip` to
+`gs://<project>.firebasestorage.app/pv-audit-bundles/{runId}.zip`, and
+`getAuditBundleUrl` returns a 24h **signed** URL. Signed URLs grant access *as
+the signing service account* (the `GOOGLE_SERVICE_ACCOUNT` secret), so that SA
+needs Storage read:
+
+```bash
+gcloud projects add-iam-policy-binding <project> \
+  --member="serviceAccount:<sa-email>" \
+  --role="roles/storage.objectViewer" --condition=None
+```
+
 ## Reproduce a single pillar (what a VVB does)
 
 ```bash

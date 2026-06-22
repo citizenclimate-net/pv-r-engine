@@ -17,6 +17,9 @@ if [ ! -d /srv/cc-pv-r/.git ]; then
   git clone https://github.com/citizenclimate-net/pv-r-engine /srv/cc-pv-r
 fi
 cd /srv/cc-pv-r
+# Let the cc-pv-r service user read git metadata of this root-owned repo, so the
+# audit bundle can record the exact commit SHA in its provenance.
+git config --system --add safe.directory /srv/cc-pv-r
 Rscript scripts/restore.R
 
 # 3. Secrets (place these on the box before running):
