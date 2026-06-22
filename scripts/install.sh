@@ -6,7 +6,7 @@ set -euo pipefail
 # 1. System dependencies for the spatial R stack (GDAL/PROJ/GEOS/udunits).
 apt-get update
 apt-get install -y \
-  r-base r-base-dev pkg-config \
+  r-base r-base-dev pkg-config zip \
   gdal-bin libgdal-dev libudunits2-dev libproj-dev libgeos-dev \
   libxml2-dev libcurl4-openssl-dev libssl-dev libsodium-dev \
   nginx certbot python3-certbot-nginx

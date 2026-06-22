@@ -16,6 +16,7 @@ source("R/matrix.R")
 source("R/pillar1.R")
 source("R/pillar2.R")
 source("R/pillar3.R")
+source("R/bundle.R")
 
 # Determinism: all iNEXT bootstrap draws are reproducible (DAP §2.1).
 set.seed(42)
@@ -70,13 +71,27 @@ function(req, res) {
   if (2 %in% pillars) out[["2"]] <- pillar2_species_diversity(matrix_by_group)
   if (3 %in% pillars) out[["3"]] <- pillar3_taxonomic_dissimilarity(matrix_by_group, taxonomy)
 
+  computed_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+
+  # Assemble the reproducibility bundle (best-effort: a bundle failure must not
+  # fail the metric run). The Cloud Function uploads the base64 to Storage.
+  bundle <- tryCatch(
+    build_audit_bundle(run_id, matrix_by_group, taxonomy, out, list(
+      inputSnapshotSha256 = payload$inputSnapshotSha256, year = payload$year,
+      computedAt = computed_at)),
+    error = function(e) { message("build_audit_bundle failed: ", conditionMessage(e)); NULL })
+
   list(
-    runId           = run_id,
-    pillars         = out,
-    rVersion        = R.version.string,
-    packageVersions = pv_package_versions(),
-    hostFingerprint = Sys.getenv("PV_HOST_FINGERPRINT", unset = Sys.info()[["nodename"]]),
-    deterministic   = TRUE,
-    computedAt      = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+    runId                = run_id,
+    pillars              = out,
+    rVersion             = R.version.string,
+    packageVersions      = pv_package_versions(),
+    hostFingerprint      = Sys.getenv("PV_HOST_FINGERPRINT", unset = Sys.info()[["nodename"]]),
+    renvLockSha256       = if (is.null(bundle)) NULL else bundle$renvLockSha256,
+    codeCommitSha        = if (is.null(bundle)) NULL else bundle$codeCommitSha,
+    auditBundleZipBase64 = if (is.null(bundle)) NULL else bundle$zipBase64,
+    auditBundleSizeBytes = if (is.null(bundle)) NULL else bundle$sizeBytes,
+    deterministic        = TRUE,
+    computedAt           = computed_at
   )
 }
