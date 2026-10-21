@@ -31,7 +31,7 @@ install -m 600 /tmp/pv-r-api-key     /etc/cc-pv-r/api-key
 
 # 4. Data directories (persistent cache + per-run scratch), backed up by the
 #    existing Hetzner snapshot schedule.
-install -d /var/lib/cc-pv-r/cache /var/lib/cc-pv-r/runs
+install -d /var/lib/cc-pv-r/cache /var/lib/cc-pv-r/runs /var/lib/cc-pv-r/sat
 
 # 4b. The service runs as the cc-pv-r system user, so it must own (and be able
 #     to read) its config + data. Create the user if missing, then chown.
@@ -39,13 +39,17 @@ id -u cc-pv-r >/dev/null 2>&1 || \
   useradd --system --no-create-home --shell /usr/sbin/nologin cc-pv-r
 chown -R cc-pv-r:cc-pv-r /etc/cc-pv-r /var/lib/cc-pv-r
 
-# 5. systemd service + nginx vhost.
+# 5. systemd services (Pillars 1-3 on :8001, satellite Pillars 4-5 on :8002)
+#    + nginx vhost (/sat/ is routed to :8002 by the included snippet).
 install -m 644 systemd/pv-r-engine.service /etc/systemd/system/pv-r-engine.service
+install -m 644 systemd/pv-sat-engine.service /etc/systemd/system/pv-sat-engine.service
+install -d /etc/nginx/snippets
+install -m 644 nginx/cc-pv-sat.conf /etc/nginx/snippets/cc-pv-sat.conf
 install -m 644 nginx/cc-pv-r.conf /etc/nginx/sites-available/cc-pv-r.conf
 ln -sf /etc/nginx/sites-available/cc-pv-r.conf /etc/nginx/sites-enabled/cc-pv-r.conf
 
 systemctl daemon-reload
-systemctl enable --now pv-r-engine.service
+systemctl enable --now pv-r-engine.service pv-sat-engine.service
 nginx -t && systemctl reload nginx
 
 # 6. TLS (same DuckDNS + Let's Encrypt pattern as the BirdNET endpoint):

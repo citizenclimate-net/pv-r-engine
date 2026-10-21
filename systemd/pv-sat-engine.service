@@ -1,0 +1,26 @@
+[Unit]
+Description=PV Nature satellite pillars (4-5) R engine (plumber)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/srv/cc-pv-r
+Environment=PV_HOST_FINGERPRINT=hetzner-cpx12-birdnet-server
+Environment=PV_SAT_WORKDIR=/var/lib/cc-pv-r/sat
+Environment=PV_SAT_WORKERS=4
+Environment=PV_SAT_MAX_AREA_HA=50000
+ExecStart=/usr/bin/Rscript -e "plumber::pr_run(plumber::pr('/srv/cc-pv-r/sat_api.R'), port = 8002, host = '127.0.0.1')"
+Restart=on-failure
+RestartSec=5
+# Runs beside the Pillars 1-3 engine (:8001) so a long Sentinel-2 run never
+# blocks a species run. localhost only, fronted by nginx under /sat/.
+User=cc-pv-r
+Group=cc-pv-r
+NoNewPrivileges=true
+ProtectSystem=full
+# Satellite runs read a few hundred COG windows; keep memory bounded on the
+# small box (terra spills to PV_SAT_WORKDIR when it needs more).
+MemoryMax=1500M
+
+[Install]
+WantedBy=multi-user.target
