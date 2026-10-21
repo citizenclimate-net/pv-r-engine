@@ -103,9 +103,13 @@ on identical input are short-circuited to the cached result.
 Adding the satellite service to the existing box:
 
 ```bash
-sudo bash /srv/cc-pv-r/scripts/upgrade_satellite.sh   # git pull, spatial R stack, pv-sat-engine unit, nginx /sat/
-curl -H "X-API-Key: $(cat /etc/cc-pv-r/api-key)" https://citizenclimate-pv-r.duckdns.org/sat/health
+sudo git -C /srv/cc-pv-r pull --ff-only               # the upgrade script ships in this pull
+sudo bash /srv/cc-pv-r/scripts/upgrade_satellite.sh   # spatial R stack, pv-sat-engine unit, nginx /sat/
+curl -H "X-API-Key: $(sudo cat /etc/cc-pv-r/api-key)" https://citizenclimate-pv-r.duckdns.org/sat/health
 ```
+
+SSH is allowed only from the allow-listed IP in the Hetzner Cloud firewall; from
+elsewhere use the server's **Console** tab in console.hetzner.cloud.
 
 Fresh box:
 

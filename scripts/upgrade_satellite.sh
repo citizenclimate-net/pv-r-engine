@@ -29,4 +29,4 @@ if ! grep -q "cc-pv-sat.conf" "$VHOST"; then
 fi
 nginx -t && systemctl reload nginx
 
-echo "Done. Check: curl -H \"X-API-Key: \$(cat /etc/cc-pv-r/api-key)\" https://citizenclimate-pv-r.duckdns.org/sat/health"
+echo "Done. Check: curl -H \"X-API-Key: \$(sudo cat /etc/cc-pv-r/api-key)\" https://citizenclimate-pv-r.duckdns.org/sat/health"
