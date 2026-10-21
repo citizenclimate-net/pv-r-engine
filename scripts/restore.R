@@ -20,4 +20,6 @@ options(
 
 cat(sprintf("Restoring packages via P3M for '%s'\n", codename))
 if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
-renv::restore(prompt = FALSE)
+# Pass the P3M repo explicitly: by default renv restores from the lockfile's
+# CRAN URL, which only serves source packages.
+renv::restore(prompt = FALSE, repos = getOption("repos"))

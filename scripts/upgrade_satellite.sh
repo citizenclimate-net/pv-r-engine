@@ -7,7 +7,9 @@ cd /srv/cc-pv-r
 
 # 1. Latest code + the spatial R stack (terra, geodiv, landscapemetrics).
 git pull --ff-only
-apt-get install -y gdal-bin libgdal-dev libudunits2-dev libproj-dev libgeos-dev zip
+# libabsl-dev + cmake: s2 (needed by sf, which geodiv imports) builds against Abseil.
+apt-get install -y gdal-bin libgdal-dev libudunits2-dev libproj-dev libgeos-dev zip \
+  libabsl-dev cmake libssl-dev
 Rscript scripts/restore.R
 
 # 2. Work dir for scene rasters (terra spills here; cleaned per run).
