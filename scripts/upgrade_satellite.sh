@@ -18,7 +18,8 @@ install -d -o cc-pv-r -g cc-pv-r /var/lib/cc-pv-r/sat
 # 3. systemd unit for the second plumber process on :8002.
 install -m 644 systemd/pv-sat-engine.service /etc/systemd/system/pv-sat-engine.service
 systemctl daemon-reload
-systemctl enable --now pv-sat-engine.service
+systemctl enable pv-sat-engine.service
+systemctl restart pv-sat-engine.service   # also picks up unit/env changes on re-runs
 systemctl restart pv-r-engine.service   # picks up the pulled code too
 
 # 4. nginx: /sat/ -> :8002, included in every server block for this host.

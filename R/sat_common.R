@@ -193,11 +193,47 @@ stac_get_items <- function(api, collection, ids) {
   })
 }
 
-#' Run `fun` over `xs` with forked workers on Linux, sequentially elsewhere.
-sat_map <- function(xs, fun) {
-  if (SAT_WORKERS > 1 && length(xs) > 1) {
-    parallel::mclapply(xs, fun, mc.cores = SAT_WORKERS, mc.preschedule = FALSE)
-  } else {
-    lapply(xs, fun)
+SAT_JOB_TIMEOUT <- as.numeric(Sys.getenv("PV_SAT_JOB_TIMEOUT", "120"))
+
+#' Run `fun` over `xs` and return the results in order. On Linux each element
+#' runs in its own forked child, up to SAT_WORKERS at a time, with a
+#' SAT_JOB_TIMEOUT limit. A forked child can deadlock on network/TLS state it
+#' inherited from the parent, so a child that runs over the limit is killed and
+#' from then on every remaining element (and the killed one) runs in-process.
+#' `fun` failing for an element yields `on_fail(x, reason)` instead of an error.
+sat_map <- function(xs, fun, on_fail) {
+  safe <- function(x) tryCatch(fun(x), error = function(e) on_fail(x, conditionMessage(e)))
+  if (SAT_WORKERS <= 1 || length(xs) <= 1) return(lapply(xs, safe))
+  out <- vector("list", length(xs))
+  pending <- seq_along(xs)
+  running <- list()                     # pid -> list(job, i, start)
+  forking <- TRUE
+  while (length(running) > 0 || (forking && length(pending) > 0)) {
+    while (forking && length(running) < SAT_WORKERS && length(pending) > 0) {
+      i <- pending[1]; pending <- pending[-1]
+      job <- parallel::mcparallel(safe(xs[[i]]), silent = TRUE)
+      running[[as.character(job$pid)]] <- list(job = job, i = i, start = Sys.time())
+    }
+    done <- parallel::mccollect(lapply(running, `[[`, "job"), wait = FALSE, timeout = 0.5)
+    for (pid in names(done)) {
+      r <- running[[pid]]
+      if (is.null(r)) next
+      v <- done[[pid]]
+      out[[r$i]] <- if (is.list(v)) v else on_fail(xs[[r$i]], "worker process failed")
+      running[[pid]] <- NULL
+    }
+    for (pid in names(running)) {
+      r <- running[[pid]]
+      if (as.numeric(difftime(Sys.time(), r$start, units = "secs")) > SAT_JOB_TIMEOUT) {
+        message(sprintf("sat_map: worker %s over %d s, killing it and continuing in-process", pid, SAT_JOB_TIMEOUT))
+        tools::pskill(as.integer(pid), tools::SIGKILL)
+        try(parallel::mccollect(r$job, wait = TRUE, timeout = 5), silent = TRUE)
+        pending <- c(pending, r$i)
+        running[[pid]] <- NULL
+        forking <- FALSE
+      }
+    }
   }
+  for (i in pending) out[[i]] <- safe(xs[[i]])
+  out
 }

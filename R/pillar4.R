@@ -127,13 +127,12 @@ p4_auto_season <- function(site, year, cloud_thr, today = Sys.Date()) {
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   on.exit(unlink(dir, recursive = TRUE), add = TRUE)
   res <- sat_map(names(picked), function(k) {
-    out <- tryCatch(p4_acquisition_ndvi(picked[[k]], site, cloud_thr,
-                                        file.path(dir, paste0(gsub("[^0-9A-Za-z]", "_", k), ".tif")),
-                                        template = coarse),
-                    error = function(e) list(file = NA_character_, clearPixels = 0))
+    out <- p4_acquisition_ndvi(picked[[k]], site, cloud_thr,
+                               file.path(dir, paste0(gsub("[^0-9A-Za-z]", "_", k), ".tif")),
+                               template = coarse)
     out$key <- k
     out
-  })
+  }, on_fail = function(k, why) list(file = NA_character_, ids = character(), clearPixels = 0, key = k, error = why))
 
   site_cells <- as.numeric(terra::global(terra::resample(site$mask, coarse, method = "near"), "notNA")[1, 1])
   profile <- lapply(1:12, function(m) {
@@ -182,13 +181,11 @@ pillar4_habitat_health <- function(site, year, season_start_month = NULL,
   dir.create(file.path(out_dir, "scenes"), recursive = TRUE, showWarnings = FALSE)
   acq <- group_acquisitions(items)
   res <- sat_map(names(acq), function(k) {
-    out <- tryCatch(p4_acquisition_ndvi(acq[[k]], site, cloud_prob_threshold,
-                                        file.path(out_dir, "scenes", paste0(gsub("[^0-9A-Za-z]", "_", k), ".tif"))),
-                    error = function(e) list(file = NA_character_, ids = character(), clearPixels = 0,
-                                             error = conditionMessage(e)))
+    out <- p4_acquisition_ndvi(acq[[k]], site, cloud_prob_threshold,
+                               file.path(out_dir, "scenes", paste0(gsub("[^0-9A-Za-z]", "_", k), ".tif")))
     out$key <- k
     out
-  })
+  }, on_fail = function(k, why) list(file = NA_character_, ids = character(), clearPixels = 0, key = k, error = why))
   used <- Filter(function(r) !is.na(r$file), res)
   if (length(used) == 0) sat_stop("Every Sentinel-2 scene in the window was cloud-masked over the site.")
 

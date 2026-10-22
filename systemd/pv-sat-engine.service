@@ -7,7 +7,8 @@ Type=simple
 WorkingDirectory=/srv/cc-pv-r
 Environment=PV_HOST_FINGERPRINT=hetzner-cpx12-birdnet-server
 Environment=PV_SAT_WORKDIR=/var/lib/cc-pv-r/sat
-Environment=PV_SAT_WORKERS=4
+Environment=PV_SAT_WORKERS=3
+Environment=PV_SAT_JOB_TIMEOUT=120
 Environment=PV_SAT_MAX_AREA_HA=50000
 ExecStart=/usr/bin/Rscript -e "plumber::pr_run(plumber::pr('/srv/cc-pv-r/sat_api.R'), port = 8002, host = '127.0.0.1')"
 Restart=on-failure
